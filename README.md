@@ -10,3 +10,4 @@ Working in progress
 >  Hamiltonian Monte Carlo Without Detailed Balance
 >  International Conference on Machine Learning. 2014
 >  http://arxiv.org/abs/1409.5191
+>  https://github.com/Sohl-Dickstein/LAHMC
