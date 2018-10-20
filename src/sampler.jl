@@ -73,8 +73,6 @@ function sample!(S::HMCSampler{T}) where T
     logf = S.logf
 
     x0 = S.x
-    x1 = copy(S.x)
-
     p0 = ΣL * randn(T, length(x0))
 
     x1, p1, logf1, grad1, logf0, grad0 = leapfrog(x0, p0, ϵ, M, Σ2, logf)
@@ -102,7 +100,7 @@ function leapfrog(x0::AbstractVector{T}, p0::AbstractVector{T}, ϵ, M, Σ2, logf
     p1 = copy(p0)
     p1 += T(0.5) * ϵ * grad0
     logf1 = T(0.0)
-    grad1 = fill!(similar(grad0), zero(eltype(grad0)))
+    grad1 = similar(grad0)
     for i in 1:M
         x1          += ϵ * ∇KEngry(Σ2, p1)
         logf1, grad1 = logf(x1, Val(:vg))
