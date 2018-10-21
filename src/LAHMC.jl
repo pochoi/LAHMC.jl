@@ -87,7 +87,7 @@ function overrelaxation(S::Sampler{T},
 
     ii = sortperm(out, lt= (a,b) -> a[index] < b[index])
     r = findall(ii .== 1)
-    return out[ii[K-r+1]]
+    return out[ii[K-(r-1)+1]]
 end
 
 function rank(out)
