@@ -50,23 +50,17 @@ function mcmc!(s, N, S::Sampler{T}; burnin = 0, thin = 1) where T
 end
 =#
 
-function overrelaxation_mcmc!(s, N, S::Sampler{T}; K = 10, subK = 5, burnin = 0, thin = 1) where T
-    if length(s) > 0
-        set_x0!(S, s[end])
-    end
-
+function overrelaxation_mcmc!(s, N, S::Sampler{T}, index; K = 10, subK = 5, burnin = 0, thin = 1) where T
+    n = length(s)
+    s0 = Vector{T}[s[end]]
     for k in 1:N
-        x0 = s[end]
-        x1 = overrelaxation(S, x0, 1, K, subK)
-        x2 = overrelaxation(S, x1, lmax+2, K, subK)
-        x3 = overrelaxation(S, x2, 2, K, subK)
-        x4 = overrelaxation(S, x3, lmax+3, K, subK)
-
-        push!(s, x1)
-        push!(s, x2)
-        push!(s, x3)
-        push!(s, x4)
+        for i in index
+            x1 = overrelaxation(S, s0[end], i, K, subK)
+            push!(s0, x1)
+        end
     end
+
+    append!(s, s0[(burnin+1) .+ (1:thin:N)])
 
     return s
 end
