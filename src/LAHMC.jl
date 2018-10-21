@@ -72,7 +72,7 @@ function overrelaxation_mcmc!(s, N, S::Sampler{T}; K = 10, subK = 5, burnin = 0,
 end
 
 function overrelaxation(S::Sampler{T},
-                         x0::T,
+                         x0,
                          index::Integer,
                          K::Integer,
                          subK::Integer) where T
