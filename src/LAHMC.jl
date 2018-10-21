@@ -76,7 +76,7 @@ function overrelaxation(S::Sampler{T},
                          index::Integer,
                          K::Integer,
                          subK::Integer) where T
-    out = T[x0]
+    out = Vector{T}[x0]
     for k in 1:K
         set_x0!(S, x0)
         for n in 1:subK
