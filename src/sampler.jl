@@ -91,6 +91,61 @@ function sample!(S::HMCSampler{T}) where T
     return S
 end
 
+function sample!(S::HMCSampler{T}, index) where T
+    ΣL = S.ΣL
+    Σ2 = S.Σ2
+
+    ϵ = S.ϵ
+    M = S.M
+    logf = S.logf
+
+    x0 = S.x
+    p0 = ΣL * randn(T, length(x0))
+
+    x1, p1, logf1, grad1, logf0, grad0 = leapfrog(x0, p0, ϵ, M, Σ2, logf, index)
+    p1 = -p1
+
+    current_U  = -logf0
+    current_K  = KEngry(ΣL, p0)
+    proposed_U = -logf1
+    proposed_K = KEngry(ΣL, p1)
+
+    prob = exp(current_U - proposed_U + current_K - proposed_K)
+    if rand() < prob
+        S.x = x1
+    end
+    println("prob = $prob")
+
+    return S
+end
+
+function leapfrog(x0::AbstractVector{T}, p0::AbstractVector{T},
+                  ϵ::T, M, Σ2, logf::LogLikelihood{T},
+                  index) where T
+    mask = fill!(similar(x0), ϵ)
+    mask[index] .= zero(T)
+
+    logf0, grad0 = logf(x0, Val(:vg))
+    x1 = copy(x0)
+    p1 = copy(p0)
+    p1 += T(0.5) * (grad0 .* mask)
+    logf1 = T(0.0)
+    grad1 = similar(grad0)
+    for i in 1:M
+        x1          += ∇KEngry(Σ2, p1) .* mask
+        logf1, grad1 = logf(x1, Val(:vg))
+        p1          += grad1 .* mask
+    end
+    p1 -= T(0.5) * (grad1 .* mask)
+    return x1, p1, logf1, grad1, logf0, grad0
+end
+
+
+
+
+
+
+
 KEngry(ΣL, p) = (half = ΣL\p; 0.5*dot(half,half))
 ∇KEngry(Σ2, p) = Σ2\p
 
@@ -144,6 +199,7 @@ function sample!(S::LAHMCSampler{T}) where T
         C[1:(k+1),1:(k+1)] = Cl
 
         if p_cum >= rand_comparison
+            println("p_cum = $p_cum")
             S.k[k] += 1
             x1 = x_new
             p1 = p_new
@@ -151,11 +207,12 @@ function sample!(S::LAHMCSampler{T}) where T
         end
     end
     if p_cum < rand_comparison
+        println("p_cum = $p_cum")
         S.k[K+1] += 1
         x1 = copy(x0)
         p1 = -p0
     end
-
+    
     pp1 = (ΣL * randn(T, length(x0))) .* sqrt(β)
     pp2 = p1 .* sqrt(1 - β)
     S.p = pp1 + pp2
