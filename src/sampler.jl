@@ -87,6 +87,7 @@ function sample!(S::HMCSampler{T}) where T
     if rand() < prob
         S.x = x1
     end
+    println("prob = $prob")
 
     return S
 end
