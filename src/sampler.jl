@@ -87,9 +87,8 @@ function sample!(S::HMCSampler{T}) where T
     if rand() < prob
         S.x = x1
     end
-    println("prob = $prob")
 
-    return S
+    return prob
 end
 
 function sample!(S::HMCSampler{T}, index) where T
@@ -115,9 +114,8 @@ function sample!(S::HMCSampler{T}, index) where T
     if rand() < prob
         S.x = x1
     end
-    println("prob = $prob")
 
-    return S
+    return prob
 end
 
 function leapfrog(x0::AbstractVector{T}, p0::AbstractVector{T},
@@ -219,7 +217,8 @@ function sample!(S::LAHMCSampler{T}) where T
     S.p = pp1 + pp2
 
     S.x = x1
-    return S
+
+    return p_cum
 end
 
 function leap_prob(θ₁::AbstractVector{T}, r₁::AbstractVector{T},
