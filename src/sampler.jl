@@ -189,17 +189,16 @@ function sample!(S::LAHMCSampler{T}) where T
     fill!(C, NaN)
 
     for k in 1:K
-        x_new, p_new, _1, _2, _3, _4= leapfrog( x_candidate[k], p_candidate[k],
+        x_new, p_new, _1, _2, _3, _4 = leapfrog(x_candidate[k], p_candidate[k],
                                 ϵ, M, Σ2, logf)
 
         x_candidate[k+1] = x_new
         p_candidate[k+1] = p_new
-        p_cum, Cl = leap_prob_recurse( x_candidate[1:(k+1)], p_candidate[1:(k+1)],
+        p_cum, Cl = leap_prob_recurse(x_candidate[1:(k+1)], p_candidate[1:(k+1)],
                                        C[1:(k+1),1:(k+1)], ΣL, logf)
         C[1:(k+1),1:(k+1)] = Cl
 
         if p_cum >= rand_comparison
-            println("p_cum = $p_cum")
             S.k[k] += 1
             x1 = x_new
             p1 = p_new
@@ -207,7 +206,6 @@ function sample!(S::LAHMCSampler{T}) where T
         end
     end
     if p_cum < rand_comparison
-        println("p_cum = $p_cum")
         S.k[K+1] += 1
         x1 = copy(x0)
         p1 = -p0
