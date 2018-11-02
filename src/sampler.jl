@@ -91,6 +91,7 @@ function sample!(S::HMCSampler{T}) where T
     return prob
 end
 
+
 function sample!(S::HMCSampler{T}, index) where T
     ΣL = S.ΣL
     Σ2 = S.Σ2
@@ -189,7 +190,7 @@ function sample!(S::LAHMCSampler{T}) where T
 
     for k in 1:K
         x_new, p_new= leapfrog( x_candidate[k], p_candidate[k],
-                                ϵ, M, ΣL, logf)
+                                ϵ, M, Σ2, logf)
 
         x_candidate[k+1] = x_new
         p_candidate[k+1] = p_new
