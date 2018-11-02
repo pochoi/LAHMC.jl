@@ -189,7 +189,7 @@ function sample!(S::LAHMCSampler{T}) where T
     fill!(C, NaN)
 
     for k in 1:K
-        x_new, p_new= leapfrog( x_candidate[k], p_candidate[k],
+        x_new, p_new, _1, _2, _3, _4= leapfrog( x_candidate[k], p_candidate[k],
                                 ϵ, M, Σ2, logf)
 
         x_candidate[k+1] = x_new
