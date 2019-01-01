@@ -2,7 +2,7 @@ module LAHMC
 
 using LinearAlgebra
 
-export LogLikelihood, GaussianLogLikelihood
+export LogLikelihood, GaussianLogLikelihood, RLogLikelihood
 include("loglikelihood.jl")
 
 export Sampler, LAHMCSampler, HMCSampler
@@ -10,7 +10,7 @@ export set_x0!, sample!
 include("sampler.jl")
 
 export mcmc!, mcmc
-export overrelaxation_mcmc!
+export overrelaxation_mcmc!, overrelaxation
 
 function mcmc!(s, N, S::Sampler{T}; burnin = 0, thin = 1) where T
     if length(s) > 0
@@ -27,6 +27,17 @@ function mcmc!(s, N, S::Sampler{T}; burnin = 0, thin = 1) where T
     end
     return s
 end
+
+
+function mcmc(x0, N, S0::Sampler{T}; kwargs...) where T
+    S = copy(S0)
+    set_x0!(S, x0)
+    s = Array{T, 1}[]
+    mcmc!(s, N, S; kwargs...)
+    return s, S
+end
+
+
 
 #=
 function mcmc!(s, N, S::Sampler{T}; burnin = 0, thin = 1) where T
@@ -50,12 +61,12 @@ function mcmc!(s, N, S::Sampler{T}; burnin = 0, thin = 1) where T
 end
 =#
 
-function overrelaxation_mcmc!(s, N, S::Sampler{T}, index; K = 10, subK = 5, burnin = 0, thin = 1) where T
+function overrelaxation_mcmc!(s, N, S::Sampler{T}, index_rank, index_fix; K = 10, subK = 5, burnin = 0, thin = 1) where T
     n = length(s)
     s0 = Vector{T}[s[end]]
     for k in 1:N
-        for i in index
-            x1 = overrelaxation(S, s0[end], i, K, subK)
+        for (i,j) in zip(index_rank, index_fix)
+            x1 = overrelaxation(S, s0[end], i, j, K, subK)
             push!(s0, x1)
         end
     end
@@ -67,44 +78,24 @@ end
 
 function overrelaxation(S::Sampler{T},
                          x0,
-                         index::Integer,
+                         index_rank::Integer,
+                         index_fix,
                          K::Integer,
                          subK::Integer) where T
     out = Vector{T}[x0]
     for k in 1:K
         set_x0!(S, x0)
         for n in 1:subK
-            sample!(S)
+            sample!(S, index_fix)
         end
         push!(out, S.x)
     end
 
-    ii = sortperm(out, lt= (a,b) -> a[index] < b[index])
+    ii = sortperm(out, lt= (a,b) -> a[index_rank] < b[index_rank])
     r = findall(ii .== 1)[1]
     return out[ii[K-(r-1)+1]]
 end
 
-function rank(out)
-    x0 = out[1]
-    sorted_out = sort(out)
-    index = searchsorted(sorted_out, x0)
-
-    if index.start == index.stop
-        r = index.start - 1
-    else
-        r = (index.start - 1) + _sample(ones(length(index))) - 1
-    end
-    return r, sorted_out
-end
-
-
-function mcmc(x0, N, S0::Sampler{T}; kwargs...) where T
-    S = copy(S0)
-    set_x0!(S, x0)
-    s = Array{T, 1}[]
-    mcmc!(s, N, S; kwargs...)
-    return s, S
-end
 
 
 
