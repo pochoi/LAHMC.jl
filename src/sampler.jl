@@ -84,11 +84,12 @@ function sample!(S::HMCSampler{T}) where T
     proposed_K = KEngry(ΣL, p1)
 
     prob = exp(current_U - proposed_U + current_K - proposed_K)
-    if rand() < prob
+    flag = rand() < prob
+    if flag
         S.x = x1
     end
 
-    return prob
+    return prob, flag
 end
 
 
@@ -112,11 +113,12 @@ function sample!(S::HMCSampler{T}, index) where T
     proposed_K = KEngry(ΣL, p1)
 
     prob = exp(current_U - proposed_U + current_K - proposed_K)
-    if rand() < prob
+    flag = rand() < prob
+    if flag
         S.x = x1
     end
 
-    return prob
+    return prob, flag
 end
 
 function leapfrog(x0::AbstractVector{T}, p0::AbstractVector{T},
